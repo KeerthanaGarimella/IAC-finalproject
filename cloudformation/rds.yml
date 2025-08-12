@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a MySQL RDS instance with public access and security group
+
+Parameters:
+  DBName:
+    Type: String
+    Default: iacdb
+    Description: Database name
+  DBUsername:
+    Type: String
+    Default: admin
+    Description: Master username
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: keerthi1234
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t2.micro
+      - db.t2.small
+    Description: RDS instance type
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for RDS
+  Subnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet 1 for DB subnet group
+  Subnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet 2 for DB subnet group
+
+Resources:
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow MySQL access
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: CFN-RDS-SG
+
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      Tags:
+        - Key: Name
+          Value: CFN-RDS-SubnetGroup
+
+  MyRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DBName
+      Engine: mysql
+      EngineVersion: 8.0
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: 20
+      VPCSecurityGroups:
+        - !GetAtt RDSSecurityGroup.GroupId
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: true
+      DeletionProtection: false
+      BackupRetentionPeriod: 0
+      Tags:
+        - Key: Name
+          Value: CFN-RDSInstance
+
+Outputs:
+  RDSInstanceEndpoint:
+    Description: Endpoint address of the RDS instance
+    Value: !GetAtt MyRDSInstance.Endpoint.Address
+  RDSInstanceId:
+    Description: RDS instance identifier
+    Value: !Ref MyRDSInstance

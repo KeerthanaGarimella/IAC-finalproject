@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create 3 private S3 buckets with versioning and public access block
+
+Parameters:
+  Bucket1Name:
+    Type: String
+    Description: Name for the first S3 bucket
+  Bucket2Name:
+    Type: String
+    Description: Name for the second S3 bucket
+  Bucket3Name:
+    Type: String
+    Description: Name for the third S3 bucket
+
+Resources:
+  S3Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref Bucket1Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  S3Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref Bucket2Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  S3Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref Bucket3Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  Bucket1Name:
+    Value: !Ref S3Bucket1
+  Bucket2Name:
+    Value: !Ref S3Bucket2
+  Bucket3Name:
+    Value: !Ref S3Bucket3
