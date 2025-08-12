@@ -5,18 +5,21 @@ Parameters:
   Bucket1Name:
     Type: String
     Description: Name for the first S3 bucket
+    Default: prog8870-8985513-s3-bucket1
   Bucket2Name:
     Type: String
     Description: Name for the second S3 bucket
+    Default: prog8870-8985513-s3-bucket2
   Bucket3Name:
     Type: String
     Description: Name for the third S3 bucket
+    Default: prog8870-8985513-s3-bucket3    
 
 Resources:
   S3Bucket1:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref Bucket1Name
+      BucketName: "!Ref Bucket1Name"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -28,7 +31,7 @@ Resources:
   S3Bucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref Bucket2Name
+      BucketName: "!Ref Bucket2Name"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -40,7 +43,7 @@ Resources:
   S3Bucket3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref Bucket3Name
+      BucketName: "!Ref Bucket3Name"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -51,8 +54,8 @@ Resources:
 
 Outputs:
   Bucket1Name:
-    Value: !Ref S3Bucket1
+    Value: "!Ref S3Bucket1"
   Bucket2Name:
-    Value: !Ref S3Bucket2
+    Value: "!Ref S3Bucket2"
   Bucket3Name:
-    Value: !Ref S3Bucket3
+    Value: "!Ref S3Bucket3"
