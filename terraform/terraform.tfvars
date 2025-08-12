@@ -3,7 +3,7 @@
 aws_region   = "us-east-1"
 bucket_names = ["garimellabucket-1", "garimellabucket-2", "garimellabucket-3", "garimellabucket-4"]
 
-ami_id        = "ami-0c7217cdde317cfec"
+ami_id        = "ami-0de716d6197524dd9"
 instance_type = "t2.micro"
 # Replace with your actual EC2 key pair name from AWS Console
 key_name      = "keerthi-keypair"
