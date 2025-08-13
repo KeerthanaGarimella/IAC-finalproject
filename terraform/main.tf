@@ -16,10 +16,7 @@ resource "aws_s3_bucket_versioning" "private_buckets_versioning" {
   }
 }
 
-# Get Latest Amazon Linux 2 AMI
-data "aws_ssm_parameter" "amzn2_linux" {
-  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-}
+
 
 # VPC
 resource "aws_vpc" "main" {
@@ -118,22 +115,19 @@ resource "aws_security_group" "ec2_sg" {
 
 # EC2 Instance
 
-# EC2 Instance
-# key_name must match an existing EC2 key pair in your AWS account for SSH access
 resource "aws_instance" "ec2" {
-  ami                    = data.aws_ssm_parameter.amzn2_linux.value
+  ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public1.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   associate_public_ip_address = true
-  key_name               = var.key_name
+  key_name               = "keerthi-keypair"
 
   tags = {
     Name = "EC2Instance"
   }
 }
 
-# Security Group for RDS
 
 # Security Group for RDS
 resource "aws_security_group" "rds_sg" {
@@ -157,8 +151,8 @@ resource "aws_security_group" "rds_sg" {
 }
 
 # DB Subnet Group
-resource "aws_db_subnet_group" "rds_subnet_group" {
-  name       = "rds-subnet-group"
+resource "aws_db_subnet_group" "rdssubnet_group" {
+  name       = "rdssubnet-group"
    subnet_ids = [
     aws_subnet.public1.id,
     aws_subnet.public2.id
@@ -183,6 +177,6 @@ resource "aws_db_instance" "rds" {
   publicly_accessible     = true
   parameter_group_name    = "default.mysql8.0"
   vpc_security_group_ids  = [aws_security_group.rds_sg.id]
-  db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group.name
+  db_subnet_group_name    = aws_db_subnet_group.rdssubnet_group.name
   skip_final_snapshot     = true
 }

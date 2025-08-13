@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudFormation template to create a VPC, public subnet, IGW, route table, security group, and EC2 instance with public IP
+Description: VPC, public subnets, IGW, route table, EC2 instance
 
 Parameters:
   KeyName:
-    Type: AWS::EC2::KeyPair::keerthi-keypair
-    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair for SSH
   InstanceType:
     Type: String
     Default: t2.micro
@@ -16,7 +16,7 @@ Parameters:
     Description: EC2 instance type
 
 Resources:
-  MyVPC:
+  MainVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
@@ -24,39 +24,50 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: CFN-VPC
+          Value: MainVPC
 
-  PublicSubnet:
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref MyVPC
-      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref MainVPC
+      CidrBlock: 10.0.0.0/24
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [0, !GetAZs '']
+      AvailabilityZone: us-east-1a
       Tags:
         - Key: Name
-          Value: CFN-PublicSubnet
+          Value: public1
 
-  InternetGateway:
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MainVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1b
+      Tags:
+        - Key: Name
+          Value: public2
+
+  IGW:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: CFN-IGW
+          Value: IGW
 
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref MyVPC
-      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref MainVPC
+      InternetGatewayId: !Ref IGW
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MyVPC
+      VpcId: !Ref MainVPC
       Tags:
         - Key: Name
-          Value: CFN-PublicRouteTable
+          Value: PublicRouteTable
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -64,51 +75,65 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
+      GatewayId: !Ref IGW
 
-  SubnetRouteTableAssociation:
+  SubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PublicSubnet
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
 
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable SSH access via port 22
-      VpcId: !Ref MyVPC
+      GroupDescription: Allow SSH inbound traffic
+      VpcId: !Ref MainVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: CFN-EC2-SG
+          Value: ec2_sg
 
-  MyEC2Instance:
+  EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      ImageId: ami-0c7217cdde317cfec  # Amazon Linux 2 AMI (update as needed)
-      SubnetId: !Ref PublicSubnet
+      ImageId: ami-0de716d6197524dd9 # Use your AMI ID
+      SubnetId: !Ref PublicSubnet1
       SecurityGroupIds:
         - !Ref EC2SecurityGroup
       Tags:
         - Key: Name
-          Value: CFN-EC2Instance
+          Value: EC2Instance
 
 Outputs:
   InstancePublicIP:
     Description: Public IP address of the EC2 instance
-    Value: !GetAtt MyEC2Instance.PublicIp
+    Value: !GetAtt EC2Instance.PublicIp
   InstanceId:
     Description: Instance ID
-    Value: !Ref MyEC2Instance
+    Value: !Ref EC2Instance
   VPCId:
     Description: VPC ID
-    Value: !Ref MyVPC
-  SubnetId:
-    Description: Subnet ID
-    Value: !Ref PublicSubnet
+    Value: !Ref MainVPC
+  Subnet1Id:
+    Description: Subnet 1 ID
+    Value: !Ref PublicSubnet1
+  Subnet2Id:
+    Description: Subnet 2 ID
+    Value: !Ref PublicSubnet2

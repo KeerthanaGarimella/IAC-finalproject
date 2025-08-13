@@ -1,61 +1,71 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudFormation template to create 3 private S3 buckets with versioning and public access block
-
-Parameters:
-  Bucket1Name:
-    Type: String
-    Description: Name for the first S3 bucket
-    Default: prog8870-8985513-s3-bucket1
-  Bucket2Name:
-    Type: String
-    Description: Name for the second S3 bucket
-    Default: prog8870-8985513-s3-bucket2
-  Bucket3Name:
-    Type: String
-    Description: Name for the third S3 bucket
-    Default: prog8870-8985513-s3-bucket3    
+Description: Private S3 buckets with versioning and encryption
 
 Resources:
-  S3Bucket1:
+  PrivateBucket1:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "!Ref Bucket1Name"
+      BucketName: keerthana-finalproject-1-20250813
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: true
         IgnorePublicAcls: true
+        BlockPublicPolicy: true
         RestrictPublicBuckets: true
+      Tags:
+        - Key: Purpose
+          Value: FinalProject
 
-  S3Bucket2:
+  PrivateBucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "!Ref Bucket2Name"
+      BucketName: keerthana-finalproject-2-20250813
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: true
         IgnorePublicAcls: true
+        BlockPublicPolicy: true
         RestrictPublicBuckets: true
+      Tags:
+        - Key: Owner
+          Value: Preethi
 
-  S3Bucket3:
+  PrivateBucket3:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "!Ref Bucket3Name"
+      BucketName: keerthana-finalproject-3-20250813
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: true
         IgnorePublicAcls: true
+        BlockPublicPolicy: true
         RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: SecureStorage
 
 Outputs:
   Bucket1Name:
-    Value: "!Ref S3Bucket1"
+    Description: Name of first S3 bucket
+    Value: !Ref PrivateBucket1
   Bucket2Name:
-    Value: "!Ref S3Bucket2"
+    Description: Name of second S3 bucket
+    Value: !Ref PrivateBucket2
   Bucket3Name:
-    Value: "!Ref S3Bucket3"
+    Description: Name of third S3 bucket
+    Value: !Ref PrivateBucket3

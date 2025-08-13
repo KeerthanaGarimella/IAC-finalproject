@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudFormation template to create a MySQL RDS instance with public access and security group
+Description: MySQL RDS instance with public access and security group
 
 Parameters:
   DBName:
@@ -13,7 +13,7 @@ Parameters:
   DBPassword:
     Type: String
     NoEcho: true
-    Description: keerthi1234
+    Description: Database password
   DBInstanceClass:
     Type: String
     Default: db.t3.micro
@@ -44,9 +44,14 @@ Resources:
           FromPort: 3306
           ToPort: 3306
           CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: CFN-RDS-SG
+          Value: rds_sg
 
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -57,7 +62,7 @@ Resources:
         - !Ref Subnet2
       Tags:
         - Key: Name
-          Value: CFN-RDS-SubnetGroup
+          Value: RDSSubnetGroup
 
   MyRDSInstance:
     Type: AWS::RDS::DBInstance
@@ -77,7 +82,7 @@ Resources:
       BackupRetentionPeriod: 0
       Tags:
         - Key: Name
-          Value: CFN-RDSInstance
+          Value: RDSInstance
 
 Outputs:
   RDSInstanceEndpoint:
@@ -86,3 +91,4 @@ Outputs:
   RDSInstanceId:
     Description: RDS instance identifier
     Value: !Ref MyRDSInstance
+    
