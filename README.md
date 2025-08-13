@@ -6,8 +6,7 @@ This project demonstrates how to provision a scalable AWS infrastructure using b
 ---
 
 ## Project Structure
-```
-/
+
 ├── terraform-project/
 │   ├── main.tf
 │   ├── provider.tf
