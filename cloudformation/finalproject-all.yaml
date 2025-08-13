@@ -1,0 +1,314 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Complete CloudFormation template for PROG8870 Final Project (VPC, Subnet, Security Group, EC2, S3, RDS)
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: keerthi-keypair
+    Description: Name of an existing EC2 KeyPair for SSH
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+    Description: EC2 instance type
+  AmiId:
+    Type: String
+    Default: ami-0de716d6197524dd9
+    Description: AMI ID for EC2 instance
+  S3Bucket1Name:
+    Type: String
+    Default: prog8870-usnv-cft-s3bucket-001
+    Description: Name for S3 bucket 1
+  S3Bucket2Name:
+    Type: String
+    Default: prog8870-usnv-cft-s3bucket-002
+    Description: Name for S3 bucket 2
+  S3Bucket3Name:
+    Type: String
+    Default: prog8870-usnv-cft-s3bucket-003
+    Description: Name for S3 bucket 3
+  S3Bucket4Name:
+    Type: String
+    Default: prog8870-usnv-cft-s3bucket-004
+    Description: Name for S3 bucket 4
+  VPCName:
+    Type: String
+    Default: prog8870-vpc
+    Description: Name for VPC
+  PublicSubnet1Name:
+    Type: String
+    Default: prog8870-pubsubnet-1
+    Description: Name for Public Subnet 1
+  PublicSubnet2Name:
+    Type: String
+    Default: prog8870-pubsubnet-2
+    Description: Name for Public Subnet 2
+  PrivateSubnet1Name:
+    Type: String
+    Default: prog8870-pvtsubnet-1
+    Description: Name for Private Subnet 1
+  PrivateSubnet2Name:
+    Type: String
+    Default: prog8870-pvtsubnet-2
+    Description: Name for Private Subnet 2
+  DBName:
+    Type: String
+    Default: prog8870db
+    Description: Database name
+  DBUsername:
+    Type: String
+    Default: admin
+    Description: Master username
+  DBPassword:
+    Type: String
+    Default: prog8870password
+    NoEcho: true
+    Description: Database password
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t2.micro
+      - db.t2.small
+    Description: RDS instance type
+  RDSInstanceName:
+    Type: String
+    Default: prog8870-rds
+    Description: Name for RDS Instance
+  RDSSGName:
+    Type: String
+    Default: prog8870-rds-sg
+    Description: Name for RDS Security Group
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref VPCName
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: Name
+          Value: !Ref PublicSubnet1Name
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1b
+      Tags:
+        - Key: Name
+          Value: !Ref PublicSubnet2Name
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: us-east-1c
+      Tags:
+        - Key: Name
+          Value: !Ref PrivateSubnet1Name
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.4.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: us-east-1d
+      Tags:
+        - Key: Name
+          Value: !Ref PrivateSubnet2Name
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: prog8870-igw
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref IGW
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: prog8870-rtb
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: prog8870-ec2-sg
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: prog8870-ec2
+  S3Bucket001:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3Bucket1Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  S3Bucket002:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3Bucket2Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  S3Bucket003:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3Bucket3Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  S3Bucket004:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3Bucket4Name
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable MySQL access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Ref RDSSGName
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: prog8870-rds-subnet-group
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: mysql
+      AllocatedStorage: 20
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      Tags:
+        - Key: Name
+          Value: !Ref RDSInstanceName
+
+Outputs:
+  VPCId:
+    Description: VPC ID
+    Value: !Ref VPC
+  PublicSubnet1Id:
+    Description: Public Subnet 1 ID
+    Value: !Ref PublicSubnet1
+  PublicSubnet2Id:
+    Description: Public Subnet 2 ID
+    Value: !Ref PublicSubnet2
+  EC2InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref EC2Instance
+  S3Bucket1Name:
+    Description: S3 Bucket 1 Name
+    Value: !Ref S3Bucket1Name
+  S3Bucket2Name:
+    Description: S3 Bucket 2 Name
+    Value: !Ref S3Bucket2Name
+  S3Bucket3Name:
+    Description: S3 Bucket 3 Name
+    Value: !Ref S3Bucket3Name
+  S3Bucket4Name:
+    Description: S3 Bucket 4 Name
+    Value: !Ref S3Bucket4Name
+  RDSInstanceId:
+    Description: RDS Instance ID
+    Value: !Ref RDSInstance
