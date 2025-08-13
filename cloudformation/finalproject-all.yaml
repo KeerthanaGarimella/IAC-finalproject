@@ -31,10 +31,6 @@ Parameters:
     Type: String
     Default: prog8870-usnv-cft-s3bucket-003
     Description: Name for S3 bucket 3
-  S3Bucket4Name:
-    Type: String
-    Default: prog8870-usnv-cft-s3bucket-004
-    Description: Name for S3 bucket 4
   VPCName:
     Type: String
     Default: prog8870-vpc
@@ -234,17 +230,6 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         RestrictPublicBuckets: true
-  S3Bucket004:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref S3Bucket4Name
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        IgnorePublicAcls: true
-        BlockPublicPolicy: true
-        RestrictPublicBuckets: true
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -306,9 +291,6 @@ Outputs:
   S3Bucket3Name:
     Description: S3 Bucket 3 Name
     Value: !Ref S3Bucket3Name
-  S3Bucket4Name:
-    Description: S3 Bucket 4 Name
-    Value: !Ref S3Bucket4Name
-  RDSInstanceId:
+    RDSInstanceId:
     Description: RDS Instance ID
     Value: !Ref RDSInstance
