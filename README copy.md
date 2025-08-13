@@ -116,8 +116,6 @@ aws cloudformation create-stack `
 - Terraform and CloudFormation code snippets
 - Terraform apply and CloudFormation stack outputs
 
----
-
 ## Destroying Resources
 - **Terraform:** `terraform destroy`
 - **CloudFormation:** Delete the stack from the AWS Console or use:
