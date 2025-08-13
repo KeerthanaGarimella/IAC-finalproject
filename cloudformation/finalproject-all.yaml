@@ -81,7 +81,6 @@ Parameters:
     Type: String
     Default: prog8870-rds-sg
     Description: Name for RDS Security Group
-
 Resources:
   VPC:
     Type: AWS::EC2::VPC
